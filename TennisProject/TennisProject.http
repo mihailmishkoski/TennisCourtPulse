@@ -1,0 +1,6 @@
+@TennisProject_HostAddress = http://localhost:5239
+
+GET {{TennisProject_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
