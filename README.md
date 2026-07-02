@@ -1,4 +1,4 @@
-# CourtPulse — Live Tennis Match Intelligence
+# TennisCourtPulse — Live Tennis Match Intelligence
 
 
 https://github.com/user-attachments/assets/d24d3add-0246-4b55-9eeb-28f268a010be
