@@ -6,7 +6,6 @@ https://github.com/user-attachments/assets/40a5dff6-3207-4458-bcb7-4da648aee40d
 
 
 
-
 ASP.NET Core (net8.0) backend that ingests live tennis data from **api-tennis.com**,
 stores it in PostgreSQL, and derives real-time analytics (momentum, effort,
 win-probability, turning points) plus finished-match summaries for an Angular client.
