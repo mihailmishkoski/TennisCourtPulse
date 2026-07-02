@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TennisTennisCourtPulse — Backend Engine &amp; Match Mathematics</title>
+<style>
+  :root{
+    --ground:#f6faf3; --paper:#ffffff;
+    --court:#1b6b3f; --court-deep:#0f4a2b; --grass:#2e8b57;
+    --line:#ffffff; --ball:#a6c62b; --clay:#c26b43;
+    --ink:#12271b; --dim:#5b7365; --rule:#dde9de; --rule-strong:#c4d6c6;
+    --code-bg:#0f2a1c;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:820px;margin:0 auto;padding:0 24px}
+  a{color:var(--court);text-decoration:none;border-bottom:1px solid var(--rule-strong)}
+  a:hover{border-color:var(--court)}
+  ::selection{background:var(--ball);color:var(--ink)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;background:var(--court-deep);color:#eaf5ec;overflow:hidden;border-bottom:4px solid var(--ball)}
+  .hero svg.court{position:absolute;inset:0;width:100%;height:100%;opacity:.5}
+  .hero .wrap{position:relative;padding:64px 24px 56px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--ball);margin:0 0 18px}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,6vw,60px);line-height:1.02;margin:0;text-wrap:balance;letter-spacing:-.01em}
+  .hero .lede{font-family:var(--serif);font-size:clamp(18px,2.4vw,23px);font-style:italic;color:#c8e2ce;max-width:34ch;margin:20px 0 0;text-wrap:balance}
+  .hero .meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:34px;font-family:var(--mono);font-size:12.5px;color:#9dc4a6}
+  .hero .meta b{color:#eaf5ec;font-weight:600}
+
+  /* ---------- rhythm ---------- */
+  section{padding:56px 0;border-bottom:1px solid var(--rule)}
+  section:last-of-type{border-bottom:none}
+  .kicker{display:flex;align-items:baseline;gap:14px;margin:0 0 6px}
+  .kicker .num{font-family:var(--mono);font-size:13px;color:var(--clay);font-weight:600;letter-spacing:.05em}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(27px,4vw,34px);line-height:1.12;margin:0 0 14px;text-wrap:balance;letter-spacing:-.01em}
+  h3{font-family:var(--sans);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.11em;color:var(--dim);margin:34px 0 12px}
+  p{margin:14px 0;max-width:66ch}
+  .lead{font-size:18px;color:#2c4636}
+  strong{font-weight:650}
+  code{font-family:var(--mono);font-size:.87em;background:#eef4ec;border:1px solid var(--rule);border-radius:5px;padding:1px 6px;color:var(--court)}
+  .dim{color:var(--dim)}
+
+  /* ---------- court-line divider ---------- */
+  .baseline{height:2px;background:repeating-linear-gradient(90deg,var(--rule-strong) 0 18px,transparent 18px 30px);margin:8px 0 0;border:none}
+
+  /* ---------- cards / callouts ---------- */
+  .card{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;margin:20px 0;box-shadow:0 1px 0 var(--rule)}
+  .note{border-left:3px solid var(--ball);background:linear-gradient(90deg,#fbfdf6,var(--paper));padding:14px 18px;border-radius:0 12px 12px 0;margin:20px 0;font-size:15px}
+  .note b{color:var(--court)}
+
+  /* ---------- pipeline ---------- */
+  .pipe{display:flex;flex-direction:column;gap:2px;counter-reset:step;margin:22px 0}
+  .stage{display:grid;grid-template-columns:44px 1fr;gap:18px;align-items:start;background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:16px 18px;position:relative}
+  .stage .badge{width:44px;height:44px;border-radius:50%;background:var(--court);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:16px}
+  .stage h4{margin:2px 0 3px;font-family:var(--sans);font-size:16px;font-weight:650}
+  .stage p{margin:0;font-size:14.5px;max-width:none}
+  .stage .file{font-family:var(--mono);font-size:12px;color:var(--clay);margin-top:6px;display:inline-block}
+  .connector{height:14px;width:2px;background:var(--rule-strong);margin-left:43px}
+
+  /* ---------- tables ---------- */
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:16px 0;border:1px solid var(--rule);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:440px}
+  th,td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--rule)}
+  thead th{background:#eef4ec;font-family:var(--sans);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);font-weight:700}
+  tbody tr:last-child td{border-bottom:none}
+  td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .w-pos{color:var(--court);font-weight:700}
+  .w-neg{color:var(--clay);font-weight:700}
+
+  /* ---------- formula ---------- */
+  .formula{font-family:var(--mono);font-size:13.5px;line-height:1.7;background:var(--code-bg);color:#d7ead9;border-radius:12px;padding:16px 18px;margin:16px 0;overflow-x:auto;white-space:pre;border:1px solid #143c26}
+  .formula .c{color:#7fa98a}
+  .formula .k{color:var(--ball)}
+
+  /* ---------- weights scoreboard ---------- */
+  .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:18px 0}
+  .chip{background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:14px 16px}
+  .chip .v{font-family:var(--mono);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+  .chip .v.pos{color:var(--court)} .chip .v.neg{color:var(--clay)} .chip .v.big{color:var(--clay)}
+  .chip .l{font-size:13px;color:var(--dim);margin-top:6px}
+
+  /* ---------- momentum worked example ---------- */
+  .match-head{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:14px;border-bottom:2px solid var(--rule-strong);margin-bottom:16px}
+  .player{display:flex;align-items:center;gap:9px;font-weight:650}
+  .swatch{width:12px;height:12px;border-radius:3px;flex:none}
+  .sw-first{background:var(--court)} .sw-second{background:var(--clay)}
+  .game-line{margin:14px 0}
+  .game-line .cap{font-size:13.5px;margin-bottom:6px}
+  .seq{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .pt{font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid;font-variant-numeric:tabular-nums}
+  .pt.f{color:var(--court);border-color:#bcd8c4;background:#f0f7f1}
+  .pt.s{color:var(--clay);border-color:#e6c6b6;background:#fbf1ec}
+  .pt.brk{background:var(--clay);color:#fff;border-color:var(--clay);font-weight:700}
+  .run{font-family:var(--mono);font-size:12.5px;color:var(--dim);margin-left:4px}
+  .totals{display:flex;gap:10px;margin:18px 0 6px;flex-direction:column}
+  .trow{display:flex;align-items:center;gap:12px}
+  .trow .name{width:80px;font-size:14px;flex:none}
+  .track{flex:1;height:18px;background:#eef4ec;border-radius:9px;overflow:hidden;border:1px solid var(--rule)}
+  .fill{height:100%}
+  .fill.first{background:var(--court)} .fill.second{background:var(--clay)}
+  .trow .val{width:32px;text-align:right;font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums}
+  figure{margin:20px 0}
+  figcaption{font-size:13px;color:var(--dim);margin-top:8px;text-align:center}
+  .chart-legend{display:flex;gap:20px;justify-content:center;font-size:12.5px;color:var(--dim);margin-top:6px;flex-wrap:wrap}
+  .chart-legend i{width:11px;height:11px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:-1px}
+
+  /* ---------- probability ladder ---------- */
+  .ladder{display:flex;flex-direction:column;gap:0;margin:20px 0}
+  .rung{background:var(--paper);border:1px solid var(--rule);border-left:4px solid var(--court);border-radius:10px;padding:14px 18px}
+  .rung h4{margin:0 0 2px;font-family:var(--serif);font-size:19px;font-weight:600}
+  .rung .sig{font-family:var(--mono);font-size:12.5px;color:var(--dim)}
+  .rung.base{border-left-color:var(--ball)}
+  .feeds{align-self:center;color:var(--clay);font-family:var(--mono);font-size:12px;padding:7px 0;letter-spacing:.04em}
+
+  footer{background:var(--court-deep);color:#bcd8c4;padding:40px 0}
+  footer .wrap{display:flex;flex-direction:column;gap:6px}
+  footer a{color:#eaf5ec;border-color:#2f6b47}
+  footer .fmono{font-family:var(--mono);font-size:12.5px}
+
+  @media (max-width:640px){
+    .hero .wrap{padding:48px 20px 40px}
+    section{padding:44px 0}
+    .stage{grid-template-columns:36px 1fr;gap:14px}
+    .stage .badge{width:36px;height:36px;font-size:14px}
+    .connector{margin-left:37px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================= HERO ============================= -->
+<header class="hero">
+  <svg class="court" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="800" height="300" fill="#0f4a2b"/>
+    <g stroke="#ffffff" stroke-width="2" fill="none" opacity="0.85">
+      <rect x="70" y="40" width="660" height="220"/>
+      <line x1="70" y1="70" x2="730" y2="70"/>
+      <line x1="70" y1="230" x2="730" y2="230"/>
+      <line x1="240" y1="70" x2="240" y2="230"/>
+      <line x1="560" y1="70" x2="560" y2="230"/>
+      <line x1="240" y1="150" x2="560" y2="150"/>
+      <line x1="400" y1="40" x2="400" y2="260" stroke-width="3"/>
+      <line x1="400" y1="36" x2="400" y2="46"/>
+      <line x1="400" y1="254" x2="400" y2="264"/>
+    </g>
+  </svg>
+  <div class="wrap">
+    <p class="eyebrow">TennisCourtPulse · Backend Documentation</p>
+    <h1>How a live tennis feed becomes match intelligence</h1>
+    <p class="lede">From one API call to momentum, win probability, and a live scoreboard — the full pipeline and the math behind it.</p>
+    <div class="meta">
+      <span><b>.NET 8</b> · Clean Architecture</span>
+      <span><b>PostgreSQL</b> · EF Core</span>
+      <span><b>Angular</b> frontend</span>
+      <span>Source: <b>api-tennis.com</b></span>
+    </div>
+  </div>
+</header>
+
+<!-- ============================= OVERVIEW ============================= -->
+<section id="overview"><div class="wrap">
+  <div class="kicker"><span class="num">00</span></div>
+  <h2>The whole engine in one loop</h2>
+  <p class="lead">Every 25 seconds the backend makes one request, reconciles what changed, advances the analytics, and stores the result. Nothing is invented — the feed is the source of truth; TennisCourtPulse cleans it, interprets it, and adds the derived metrics.</p>
+
+  <div class="pipe">
+    <div class="stage"><div class="badge">1</div><div><h4>Fetch</h4><p>One <code>get_livescore</code> HTTP call returns every live match as raw JSON.</p><span class="file">Infrastructure/ExternalApi/TennisApiClient.cs</span></div></div>
+    <div class="connector"></div>
+    <div class="stage"><div class="badge">2</div><div><h4>Map</h4><p>The raw wire shape is normalised into a clean domain object; every feed quirk is absorbed here.</p><span class="file">Application/Mapping/LiveMatchMapper.cs</span></div></div>
+    <div class="connector"></div>
+    <div class="stage"><div class="badge">3</div><div><h4>Reconcile &amp; compute</h4><p>A diff-based upsert writes only what changed and advances momentum incrementally.</p><span class="file">Application/Features/Sync/SyncLiveMatchesCommand.cs</span></div></div>
+    <div class="connector"></div>
+    <div class="stage"><div class="badge">4</div><div><h4>Store</h4><p>Eight tables in PostgreSQL, written through EF Core in a single transaction.</p><span class="file">Infrastructure/Persistence/</span></div></div>
+    <div class="connector"></div>
+    <div class="stage"><div class="badge">5</div><div><h4>Serve</h4><p>Queries expose momentum, statistics and an on-demand win probability to the Angular UI.</p><span class="file">Api/Controllers/MatchesController.cs</span></div></div>
+  </div>
+</div></section>
+
+<!-- ============================= 1. FETCH ============================= -->
+<section id="fetch"><div class="wrap">
+  <div class="kicker"><span class="num">01</span></div>
+  <h2>Fetching from api-tennis</h2>
+  <p>The source is <a href="https://api-tennis.com">api-tennis.com</a>. A single method, <code>get_livescore</code>, returns every match currently in play. The API is query-string driven and wants the key in the URL, not a header:</p>
+  <div class="formula"><span class="c">// TennisApiClient — one call per cycle</span>
+GET https://api.api-tennis.com/tennis/?method=<span class="k">get_livescore</span>&amp;APIkey=&lt;KEY&gt;</div>
+  <p>The response is deserialized into <code>LiveScoreEnvelope { success, result[] }</code>. If <code>success != 1</code> we return an empty list rather than throwing — one bad poll never takes the service down. Each element of <code>result[]</code> is one match in raw, snake-cased, everything-as-string form.</p>
+
+  <h3>The feed's non-obvious realities</h3>
+  <p>Most of the engineering effort lives here, because the feed has sharp edges that will silently corrupt the data if taken at face value:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Quirk</th><th>Why it bites</th><th>How it's handled</th></tr></thead>
+    <tbody>
+      <tr><td>Tie-break set scores are <strong>decimals</strong> — a 7-6 set arrives as <code>"7.7"</code> / <code>"6.4"</code></td><td><code>int.Parse("7.7")</code> throws → the whole set is dropped → the match shows "0-0"</td><td>Take the integer part before the dot; read the set number from <code>score_set</code>, never list position</td></tr>
+      <tr><td>Point-by-point is <strong>lossy</strong> — the game-deciding point (and sometimes every point) can be missing</td><td>Momentum built only from points would miss breaks entirely</td><td>Drive momentum from the reliable game-level <code>serve_winner</code>; points are enrichment only</td></tr>
+      <tr><td>Every statistic is <strong>repeated per period</strong>: <code>match</code>, <code>set1</code>, <code>set2</code>…</td><td>Collapsing them keeps the last set's number, badly undercounting totals (aces showed 0 instead of 5)</td><td>Keep only the <code>match</code> period when mapping</td></tr>
+      <tr><td>"Finished" lives inside the <strong>live</strong> feed</td><td>A match can be <code>event_live:"1"</code> and <code>Finished</code> at once</td><td>Finished ⇔ <code>status=="Finished"</code> or a winner is set — not absence from the feed</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<!-- ============================= 2. MAP ============================= -->
+<section id="map"><div class="wrap">
+  <div class="kicker"><span class="num">02</span></div>
+  <h2>Mapping — the anti-corruption layer</h2>
+  <p>The mapper is the boundary between the messy feed and everything downstream. Its output, <code>MappedMatch</code>, is a clean object the rest of the system trusts. Three transformations matter most.</p>
+
+  <h3>Set scores</h3>
+  <p>The games count is the integer before the decimal (<code>"7.7"</code> → 7 games; the <code>.7</code> is the tie-break mini-score). The set number comes from the feed's <code>score_set</code> field, so a skipped or oddly-encoded set never renumbers the others.</p>
+
+  <h3>Point winners</h3>
+  <p>A game score is a ladder of tokens <code>0 / 15 / 30 / 40 / A</code>. The winner of each point is inferred from which side's token advanced; when advantage drops back to 40, the point went to the opponent. If a winner can't be derived, that point is dropped rather than guessed.</p>
+
+  <h3>Statistics</h3>
+  <p>Only the <code>match</code>-total period is kept. Everything is normalised into a <code>MatchStatLine</code> that can present itself as a ratio (29/36), a percentage ("81%"), or a bare count ("14 aces").</p>
+</div></section>
+
+<!-- ============================= 3. STORE ============================= -->
+<section id="store"><div class="wrap">
+  <div class="kicker"><span class="num">03</span></div>
+  <h2>Storing — eight tables, one transaction</h2>
+  <p>The sync is a <strong>background service</strong> on a 25-second <code>PeriodicTimer</code>. Each tick opens a fresh dependency scope and runs a strictly diff-based reconciliation: upsert tournaments, players and the match, then append only the games, points and stats that are missing. Nothing is ever deleted — a match that leaves the feed is simply marked <code>IsFinished</code>.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>Table</th><th>Holds</th></tr></thead>
+    <tbody>
+      <tr><td><code>Matches</code></td><td>the match, plus the <strong>carried momentum state</strong> (cumulative + EWMA) and <code>LastSyncedAt</code></td></tr>
+      <tr><td><code>MatchSets</code></td><td>games score per set (6-7, 3-1, …)</td></tr>
+      <tr><td><code>MatchGames</code></td><td>server, game winner, <code>MomentumProcessed</code> flag</td></tr>
+      <tr><td><code>MatchPoints</code></td><td>point-by-point (15:0, break point, …)</td></tr>
+      <tr><td><code>PlayerMatchStatistic</code></td><td>aces, first-serve %, winners … (match totals)</td></tr>
+      <tr><td><code>MomentumSnapshots</code></td><td>one row per momentum event</td></tr>
+      <tr><td><code>Tournaments</code> · <code>Players</code></td><td>reference data, upserted by external key</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note"><b>A subtle EF detail that matters.</b> Every primary key is a <code>Guid</code> assigned in code. Left at EF's default (store-generated), a <em>new</em> child added to an <em>existing</em> match is mistaken for an existing row and issued as an <code>UPDATE</code> that affects zero rows — which fails the entire save the moment a live match gains a new game or point. All Guid keys are therefore marked <code>ValueGeneratedNever</code>, so new children are correctly inserted. This is why the sync must never run as two instances at once against the same database.</div>
+</div></section>
+
+<!-- ============================= 4. MOMENTUM ============================= -->
+<section id="momentum"><div class="wrap">
+  <div class="kicker"><span class="num">04</span></div>
+  <h2>The math of momentum</h2>
+  <p class="lead">Momentum is a <strong>path-dependent fold</strong>: each point carries a signed weight that is added to the running total of whoever won it. That is the entire model — a deterministic sum over the ordered timeline, with no clock and no randomness.</p>
+
+  <h3>Point weights</h3>
+  <div class="board">
+    <div class="chip"><div class="v pos">+1.0</div><div class="l">Point held on serve</div></div>
+    <div class="chip"><div class="v pos">+2.0</div><div class="l">Point won on return</div></div>
+    <div class="chip"><div class="v pos">+2.0</div><div class="l">Break point saved</div></div>
+    <div class="chip"><div class="v big">+5.0</div><div class="l">Break of serve</div></div>
+    <div class="chip"><div class="v">+7.0</div><div class="l">Set point won</div></div>
+    <div class="chip"><div class="v">+10.0</div><div class="l">Match point won</div></div>
+    <div class="chip"><div class="v neg">−2.0</div><div class="l">Double fault (server)</div></div>
+  </div>
+  <p class="dim">A single branch fires per point — signals never double-count. Winning on return is worth twice a routine hold because it threatens the opponent's serve; a break, resolved at the game boundary from the reliable <code>serve_winner</code>, is the strongest in-game signal.</p>
+
+  <h3>The fold</h3>
+  <div class="formula"><span class="c">// for each point, in order</span>
+cumulative[<span class="k">winner</span>] += weight
+ewma[<span class="k">winner</span>]       = 0.25·weight + 0.75·ewma_prev   <span class="c">// "who's hot now"</span></div>
+  <p>The <strong>cumulative</strong> line drives the main graph; the <strong>EWMA</strong> is a smoothed "surge meter" that reacts to the last handful of points. The break bonus is emitted as its own snapshot at the game boundary, so a break still registers even for a game with no point detail.</p>
+
+  <!-- worked example -->
+  <div class="card">
+    <div class="match-head">
+      <span class="player"><span class="swatch sw-first"></span>V. Royer</span>
+      <span class="dim" style="font-family:var(--mono);font-size:13px">worked example · set 1</span>
+      <span class="player">A. Zverev<span class="swatch sw-second"></span></span>
+    </div>
+
+    <div class="game-line"><div class="cap"><strong>Game 1</strong> — Royer serves and holds to love</div>
+      <div class="seq"><span class="pt f">+1</span><span class="pt f">+1</span><span class="pt f">+1</span><span class="pt s">+2</span><span class="run">→ Royer 3 · Zverev 2</span></div></div>
+
+    <div class="game-line"><div class="cap"><strong>Game 2</strong> — Zverev holds</div>
+      <div class="seq"><span class="pt s">+1</span><span class="pt s">+1</span><span class="pt s">+1</span><span class="pt f">+2</span><span class="run">→ 5 · 5</span></div></div>
+
+    <div class="game-line"><div class="cap"><strong>Game 3</strong> — Zverev <strong>breaks</strong> Royer's serve</div>
+      <div class="seq"><span class="pt s">+2</span><span class="pt f">+1</span><span class="pt s">+2</span><span class="pt s">+2</span><span class="pt brk">BREAK +5</span><span class="run">→ 6 · 16</span></div></div>
+
+    <div class="game-line"><div class="cap"><strong>Game 4</strong> — Zverev holds</div>
+      <div class="seq"><span class="pt f">+2</span><span class="pt s">+1</span><span class="pt s">+1</span><span class="pt s">+1</span><span class="run">→ 8 · 19</span></div></div>
+
+    <div class="totals">
+      <div class="trow"><span class="name">Royer</span><div class="track"><div class="fill first" style="width:42%"></div></div><span class="val">8</span></div>
+      <div class="trow"><span class="name">Zverev</span><div class="track"><div class="fill second" style="width:100%"></div></div><span class="val">19</span></div>
+    </div>
+
+    <figure>
+      <svg id="spark" width="100%" viewBox="0 0 640 190" role="img" aria-label="Momentum differential over the match" style="display:block"></svg>
+      <div class="chart-legend">
+        <span><i style="background:var(--court)"></i>above the line — Royer ahead</span>
+        <span><i style="background:var(--clay)"></i>below the line — Zverev ahead</span>
+      </div>
+      <figcaption>The cumulative differential (Royer − Zverev). It climbs early while Royer holds, then plunges to −11 the moment Zverev breaks — which is exactly why momentum can briefly disagree with the scoreboard, then converge.</figcaption>
+    </figure>
+  </div>
+
+  <div class="note"><b>Momentum is a trend, not the score.</b> A player who holds comfortably early accumulates a real edge before any break happens. The graph tracks who is winning the recent exchanges; it is designed to lead — and sometimes disagree with — the games count.</div>
+</div></section>
+
+<!-- ============================= 5. WIN PROBABILITY ============================= -->
+<section id="winprob"><div class="wrap">
+  <div class="kicker"><span class="num">05</span></div>
+  <h2>The math of win probability</h2>
+  <p class="lead">A classic hierarchical model. One number — the chance of winning a point on serve — is propagated upward through game, set and match. Every level is analytic and memoised, so a full estimate is cheap enough to run on every score change.</p>
+
+  <div class="ladder">
+    <div class="rung"><h4>🏆 Match</h4><span class="sig">Match(sa, sb) = pSet · Match(sa+1, sb) + (1 − pSet) · Match(sa, sb+1)</span></div>
+    <span class="feeds">▲ built from ▲</span>
+    <div class="rung"><h4>Set</h4><span class="sig">Set(ga, gb) = winGame · Set(ga+1, gb) + (1 − winGame) · Set(ga, gb+1)   ·   6-6 → tie-break</span></div>
+    <span class="feeds">▲</span>
+    <div class="rung"><h4>Game</h4><span class="sig">Game(a, b) = p · Game(a+1, b) + q · Game(a, b+1)   ·   deuce = p² / (p² + q²)</span></div>
+    <span class="feeds">▲</span>
+    <div class="rung base"><h4>Point</h4><span class="sig">p = probability of winning a point on your own serve · default 0.62</span></div>
+  </div>
+
+  <p>The current game and set use the <strong>live</strong> score; not-yet-started sets use a serve-neutral estimate. The final answer combines the set in progress with the remaining match:</p>
+  <div class="formula">P(A wins) = currentSet · Match(setsA+1, setsB)
+          + (1 − currentSet) · Match(setsA, setsB+1)</div>
+
+  <div class="note"><b>What the model does and doesn't know.</b> With <code>p = 0.62</code> for both players, the estimate is <strong>purely score-driven</strong> — it has no notion of ranking or form. A player up a set and 5-0 reads ~99.9% from the scoreline alone, shown in the UI as <code>&gt;99%</code> rather than a misleading absolute 100%. The hook to make it player-aware already exists: feed real serve-hold rates into <code>FirstServePointWin</code> / <code>SecondServePointWin</code> instead of the flat default.</p></div>
+</div></section>
+
+<!-- ============================= 6. END TO END ============================= -->
+<section id="lifecycle"><div class="wrap">
+  <div class="kicker"><span class="num">06</span></div>
+  <h2>Following one point end to end</h2>
+  <p>To tie it together, here is a single event — <em>Zverev breaks Royer's serve</em> — travelling through the whole system:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Stage</th><th>What happens to that break</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Fetch</strong></td><td>The feed reports game 3 with <code>serve_winner = "Second Player"</code> while the server was First.</td></tr>
+      <tr><td><strong>Map</strong></td><td>Becomes a <code>GameInput</code> with <code>ServeWinner ≠ Server</code> → recognised as a break.</td></tr>
+      <tr><td><strong>Momentum</strong></td><td>The fold applies <span class="w-pos">+5.0</span> to Zverev at the game boundary and emits a "Break of serve" snapshot.</td></tr>
+      <tr><td><strong>Win probability</strong></td><td>Next estimate re-runs with games 1-3 → Zverev's set (and match) probability jumps.</td></tr>
+      <tr><td><strong>Store</strong></td><td>A new <code>MomentumSnapshots</code> row is inserted; the match's carried cumulative state is updated.</td></tr>
+      <tr><td><strong>Serve</strong></td><td>The UI's momentum line drops below the midline and "Break of serve" appears in Key Moments.</td></tr>
+    </tbody>
+  </table></div>
+  <hr class="baseline" />
+</div></section>
+
+<footer><div class="wrap">
+  <p style="font-family:var(--serif);font-size:20px;color:#eaf5ec;margin:0">TennisCourtPulse</p>
+  <p class="fmono" style="margin:2px 0 10px">Live tennis match intelligence · backend engine</p>
+  <p class="fmono">Analytics: <code style="background:#143c26;color:#cfe6d4;border-color:#215b3c">Application/Analytics/</code> &nbsp;·&nbsp; Ingest: <code style="background:#143c26;color:#cfe6d4;border-color:#215b3c">Application/Mapping/</code> &nbsp;·&nbsp; Sync: <code style="background:#143c26;color:#cfe6d4;border-color:#215b3c">Application/Features/Sync/</code></p>
+</div></footer>
+
+<script>
+  // Real momentum differential (Royer − Zverev), point by point
+  const diff = [1,2,3,1,0,-1,-2,0,-2,-1,-3,-5,-10,-8,-9,-10,-11];
+  const W = 640, H = 190, mid = H/2, pad = 18, maxAbs = 11, n = diff.length;
+  const X = i => (i/(n-1))*W;
+  const Y = v => mid - (v/maxAbs)*(H/2 - pad);
+  const pts = diff.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`);
+  const areaTop = `M0,${mid} L ${pts.join(' L ')} L ${W},${mid} Z`;
+  document.getElementById('spark').innerHTML = `
+    <defs>
+      <linearGradient id="mg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="#1b6b3f" stop-opacity="0.34"/>
+        <stop offset="50%" stop-color="#1b6b3f" stop-opacity="0.04"/>
+        <stop offset="50%" stop-color="#c26b43" stop-opacity="0.04"/>
+        <stop offset="100%" stop-color="#c26b43" stop-opacity="0.34"/>
+      </linearGradient>
+    </defs>
+    <line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="#c4d6c6" stroke-dasharray="5 5"/>
+    <path d="${areaTop}" fill="url(#mg)"/>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="#12271b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${X(n-1)}" cy="${Y(diff[n-1])}" r="4.5" fill="#c26b43" stroke="#fff" stroke-width="1.5"/>
+  `;
+</script>
+</body>
+</html>
