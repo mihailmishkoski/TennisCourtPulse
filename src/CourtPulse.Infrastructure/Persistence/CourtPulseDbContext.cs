@@ -22,6 +22,21 @@ public sealed class CourtPulseDbContext : DbContext, ICourtPulseDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CourtPulseDbContext).Assembly);
+
+        // All primary keys are Guids assigned in code (Guid.NewGuid()). Left as the
+        // EF default (ValueGeneratedOnAdd), a NEW child added to an already-tracked
+        // parent is mistaken for an existing row and issued as an UPDATE that affects
+        // 0 rows — which fails the whole sync the moment a live match gains a new
+        // set/game/point. Marking them ValueGeneratedNever makes EF treat them as
+        // genuine inserts.
+        foreach (Microsoft.EntityFrameworkCore.Metadata.IMutableProperty property in modelBuilder.Model
+                     .GetEntityTypes()
+                     .SelectMany(t => t.GetProperties())
+                     .Where(p => p.IsPrimaryKey() && p.ClrType == typeof(Guid)))
+        {
+            property.ValueGenerated = Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.Never;
+        }
+
         base.OnModelCreating(modelBuilder);
     }
 }

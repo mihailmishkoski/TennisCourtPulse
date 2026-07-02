@@ -48,8 +48,8 @@ public sealed record MappedMatch
     /// <summary>Resolved winner side, when known.</summary>
     public PlayerSide? Winner { get; init; }
 
-    /// <summary>Set scores as (first, second) pairs in set order.</summary>
-    public required IReadOnlyList<(int First, int Second)> SetScores { get; init; }
+    /// <summary>Completed/in-progress set scores, each carrying its real set number.</summary>
+    public required IReadOnlyList<SetScoreInput> SetScores { get; init; }
 
     /// <summary>Ordered game timeline for the momentum engine.</summary>
     public required IReadOnlyList<GameInput> Games { get; init; }
@@ -57,3 +57,10 @@ public sealed record MappedMatch
     /// <summary>Statistic rows for the summary engine.</summary>
     public required IReadOnlyList<MatchStatLine> Stats { get; init; }
 }
+
+/// <summary>
+/// One set's games score. Set number comes from the feed's <c>score_set</c>,
+/// not list position — a set the feed omits or encodes oddly must not shift the
+/// numbering of the rest.
+/// </summary>
+public readonly record struct SetScoreInput(int SetNumber, int First, int Second);

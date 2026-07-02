@@ -11,6 +11,16 @@ export interface LiveMatchSummary {
   isLive: boolean;
   isFinished: boolean;
   finalResult: string | null;
+  /** In-progress game score, e.g. "15 - 0"; null when not live. */
+  currentGameScore: string | null;
+  /** Side currently serving, when the feed reports it. */
+  serving: 'First' | 'Second' | null;
+  /** Grouping for the live list. */
+  gender: 'Men' | 'Women' | 'Other';
+  /** Tour tag derived from the event type. */
+  tour: 'ATP' | 'WTA' | 'ITF' | 'Challenger' | null;
+  /** Per-set games score, ordered by set number. */
+  sets: SetScore[];
   /** Cumulative momentum lead (First − Second). */
   momentumDifferential: number;
 }
@@ -34,6 +44,10 @@ export interface MatchDetail {
   isLive: boolean;
   isFinished: boolean;
   finalResult: string | null;
+  /** In-progress game score, e.g. "15 - 0"; null when not live. */
+  currentGameScore: string | null;
+  /** Side currently serving, when the feed reports it. */
+  serving: 'First' | 'Second' | null;
   winner: string | null;
   sets: SetScore[];
 }

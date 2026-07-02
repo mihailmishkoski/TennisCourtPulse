@@ -1,0 +1,46 @@
+<a class="mrow" [routerLink]="['/matches', match.id]" [class.mrow--live]="match.isLive">
+  <div class="mrow__status">{{ statusLabel }}</div>
+
+  <div class="mrow__main">
+    <div class="pl" [class.pl--win]="winner === 'first'">
+      <cp-player-avatar class="rav" [name]="match.firstPlayer" [logoUrl]="match.firstPlayerLogo" side="first" />
+      <span class="nm">{{ match.firstPlayer }}</span>
+      <span class="sv">@if (match.isLive && match.serving === 'First') { <span class="dot"></span> }</span>
+      @for (s of match.sets; track s.setNumber) {
+        <span class="sc" [class.sc--win]="s.first > s.second">{{ s.first }}</span>
+      }
+      @if (points) { <span class="pt">{{ points[0] }}</span> }
+    </div>
+
+    <div class="pl" [class.pl--win]="winner === 'second'">
+      <cp-player-avatar class="rav" [name]="match.secondPlayer" [logoUrl]="match.secondPlayerLogo" side="second" />
+      <span class="nm">{{ match.secondPlayer }}</span>
+      <span class="sv">@if (match.isLive && match.serving === 'Second') { <span class="dot"></span> }</span>
+      @for (s of match.sets; track s.setNumber) {
+        <span class="sc" [class.sc--win]="s.second > s.first">{{ s.second }}</span>
+      }
+      @if (points) { <span class="pt">{{ points[1] }}</span> }
+    </div>
+  </div>
+
+  @if (match.isLive) {
+    <div class="mrow__mom" title="Momentum lead">
+      <div class="mom">
+        <div class="mom__center"></div>
+        <div
+          class="mom__fill"
+          [class.mom__fill--first]="momentumFirst"
+          [style.left.%]="momentumLeft"
+          [style.width.%]="momentumPct"></div>
+      </div>
+    </div>
+  }
+
+  <div class="mrow__badge">
+    @if (match.isLive) {
+      <span class="badge badge--live">LIVE</span>
+    } @else {
+      <span class="badge badge--finished">Fin</span>
+    }
+  </div>
+</a>

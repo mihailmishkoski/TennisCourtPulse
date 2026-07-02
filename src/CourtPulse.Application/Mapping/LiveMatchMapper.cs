@@ -57,18 +57,44 @@ public sealed class LiveMatchMapper
         };
     }
 
-    private static IReadOnlyList<(int First, int Second)> MapScores(List<ApiScore> scores)
+    /// <summary>
+    /// Map the feed's per-set scores. api-tennis encodes a tie-break set's games
+    /// with a decimal — "6.4"/"7.7" means 6 and 7 games (the ".4"/".7" is the
+    /// tie-break mini-score) — so we take the integer games part rather than
+    /// <c>int.Parse</c>, which would drop the whole set. The set number is taken
+    /// from <c>score_set</c>, falling back to feed order only if it is missing.
+    /// </summary>
+    private static IReadOnlyList<SetScoreInput> MapScores(List<ApiScore> scores)
     {
-        List<(int, int)> result = new List<(int, int)>();
+        List<SetScoreInput> result = new List<SetScoreInput>();
+        int fallbackSet = 0;
         foreach (ApiScore score in scores)
         {
-            if (TryInt(score.ScoreFirst, out int first) && TryInt(score.ScoreSecond, out int second))
+            fallbackSet++;
+            if (!TryGames(score.ScoreFirst, out int first) || !TryGames(score.ScoreSecond, out int second))
             {
-                result.Add((first, second));
+                continue;
             }
+
+            int setNumber = TryInt(score.ScoreSet, out int parsedSet) && parsedSet > 0 ? parsedSet : fallbackSet;
+            result.Add(new SetScoreInput(setNumber, first, second));
         }
 
         return result;
+    }
+
+    /// <summary>Parse the games count from a set score, tolerating the tie-break decimal ("7.7" → 7).</summary>
+    private static bool TryGames(string? value, out int games)
+    {
+        games = 0;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        int dot = value.IndexOf('.');
+        string gamesPart = dot >= 0 ? value[..dot] : value;
+        return int.TryParse(gamesPart, NumberStyles.Integer, CultureInfo.InvariantCulture, out games);
     }
 
     private IReadOnlyList<GameInput> MapGames(List<ApiGame> games)
@@ -187,12 +213,23 @@ public sealed class LiveMatchMapper
         return null;
     }
 
+    /// <summary>
+    /// Lift the match-total statistics. The feed repeats every stat once per period
+    /// ("match", "set1", "set2", …); we keep only the "match" totals. Ingesting all
+    /// periods would collapse them onto one row per (player, type, name) and the last
+    /// one processed — a single set — would win, badly under-counting things like aces.
+    /// </summary>
     private IReadOnlyList<MatchStatLine> MapStats(List<ApiStatistic> statistics)
     {
         List<MatchStatLine> result = new List<MatchStatLine>();
         foreach (ApiStatistic stat in statistics)
         {
             if (stat.StatType is null || stat.StatName is null)
+            {
+                continue;
+            }
+
+            if (!IsMatchTotalPeriod(stat.StatPeriod))
             {
                 continue;
             }
@@ -209,6 +246,17 @@ public sealed class LiveMatchMapper
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// True for the whole-match total row. The feed uses "match"; a null/blank
+    /// period is treated as a total too (defensive), while "set1"/"set2"/… are skipped.
+    /// </summary>
+    private static bool IsMatchTotalPeriod(string? period)
+    {
+        return string.IsNullOrWhiteSpace(period)
+            || period.Equals("match", StringComparison.OrdinalIgnoreCase)
+            || period.Equals("all", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

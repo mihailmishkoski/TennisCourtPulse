@@ -5,7 +5,9 @@
 .pl { display: flex; align-items: center; gap: 12px; }
 .pl--right { justify-content: flex-end; }
 .big-avatar { --avatar-size: 48px; }
-.score { font-variant-numeric: tabular-nums; color: var(--text-dim); font-size: 15px; }
+.score { font-variant-numeric: tabular-nums; color: var(--text-dim); font-size: 15px; text-align: center; }
+.gamescore { margin-top: 4px; font-size: 22px; font-weight: 700; color: var(--accent); }
+.serve { color: var(--accent); font-size: 10px; line-height: 1; }
 .dot { width: 10px; height: 10px; border-radius: 50%; }
 .dot--first { background: var(--first); }
 .dot--second { background: var(--second); }

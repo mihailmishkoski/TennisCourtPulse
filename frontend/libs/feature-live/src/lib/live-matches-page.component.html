@@ -8,11 +8,21 @@
       <section>
         <h2 class="section-title">Live now · {{ live(state.matches).length }}</h2>
         @if (live(state.matches).length) {
-          <div class="grid">
-            @for (m of live(state.matches); track m.id) {
-              <cp-match-card [match]="m" />
+          @for (group of genderGroups; track group.key) {
+            @if (liveByGender(state.matches, group.key).length) {
+              <div class="group">
+                <div class="group__bar">
+                  <span class="dot" [class]="'dot--' + group.key.toLowerCase()"></span>
+                  {{ group.label }} · {{ liveByGender(state.matches, group.key).length }}
+                </div>
+                <div class="card list">
+                  @for (m of liveByGender(state.matches, group.key); track m.id) {
+                    <cp-match-row [match]="m" />
+                  }
+                </div>
+              </div>
             }
-          </div>
+          }
         } @else {
           <p class="muted">No live matches right now.</p>
         }
@@ -21,9 +31,9 @@
       @if (finished(state.matches).length) {
         <section class="finished">
           <h2 class="section-title">Recently finished · {{ finished(state.matches).length }}</h2>
-          <div class="grid">
+          <div class="card list">
             @for (m of finished(state.matches); track m.id) {
-              <cp-match-card [match]="m" />
+              <cp-match-row [match]="m" />
             }
           </div>
         </section>

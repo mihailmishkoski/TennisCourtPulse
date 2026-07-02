@@ -1,0 +1,100 @@
+.mrow {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s ease;
+}
+.mrow:hover { background: var(--surface-2); }
+
+.mrow__status {
+  width: 54px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.mrow--live .mrow__status { color: var(--accent); }
+
+.mrow__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.pl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+}
+.rav { --avatar-size: 20px; flex: none; }
+.nm {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.pl--win .nm { color: var(--text); font-weight: 700; }
+
+.sv { width: 10px; flex: none; display: inline-flex; justify-content: center; }
+.sv .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+.sc {
+  width: 18px;
+  flex: none;
+  text-align: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+.sc--win { color: var(--text); font-weight: 700; }
+
+.pt {
+  width: 26px;
+  flex: none;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.mrow__mom { display: flex; align-items: center; flex: none; }
+.mom {
+  position: relative;
+  width: 78px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.mom__center {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  width: 1px;
+  height: 10px;
+  background: var(--border);
+  transform: translateX(-50%);
+  z-index: 1;
+}
+.mom__fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--second);
+  transition: left 0.4s ease, width 0.4s ease;
+}
+.mom__fill--first { background: var(--first); }
+
+.mrow__badge { display: flex; align-items: center; flex: none; }

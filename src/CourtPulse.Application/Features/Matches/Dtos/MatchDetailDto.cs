@@ -16,6 +16,13 @@ public sealed record MatchDetailDto
     public required bool IsLive { get; init; }
     public required bool IsFinished { get; init; }
     public string? FinalResult { get; init; }
+
+    /// <summary>In-progress game score, e.g. "15 - 0"; null when the match is not live.</summary>
+    public string? CurrentGameScore { get; init; }
+
+    /// <summary>Which side is serving ("First"/"Second"), when the feed reports it.</summary>
+    public string? Serving { get; init; }
+
     public string? Winner { get; init; }
     public required IReadOnlyList<SetScoreDto> Sets { get; init; }
 }

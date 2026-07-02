@@ -1,7 +1,23 @@
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+.group { margin-bottom: 18px; }
+
+.group__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
 }
+.group__bar .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.dot--men { background: var(--accent); }
+.dot--women { background: var(--second); }
+.dot--other { background: var(--text-dim); }
+
+/* Rows sit flush inside a single card; the row component draws its own dividers. */
+.list { padding: 0; overflow: hidden; }
+
 .finished { margin-top: 40px; }
 .error { padding: 20px; color: var(--second); }

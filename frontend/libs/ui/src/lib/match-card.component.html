@@ -1,6 +1,11 @@
 <a class="card tile" [routerLink]="['/matches', match.id]">
   <div class="tile__top">
-    <span class="tournament">{{ match.tournament || 'Tournament' }}</span>
+    <span class="tournament">
+      @if (match.tour) {
+        <span class="tour">{{ match.tour }}</span>
+      }
+      {{ match.tournament || 'Tournament' }}
+    </span>
     @if (match.isLive) {
       <span class="badge badge--live">Live</span>
     } @else {
@@ -12,15 +17,26 @@
     <div class="player">
       <cp-player-avatar [name]="match.firstPlayer" [logoUrl]="match.firstPlayerLogo" side="first" />
       <span class="pname">{{ match.firstPlayer }}</span>
+      @if (match.isLive && match.serving === 'First') {
+        <span class="serve" title="Serving">●</span>
+      }
     </div>
     <div class="player">
       <cp-player-avatar [name]="match.secondPlayer" [logoUrl]="match.secondPlayerLogo" side="second" />
       <span class="pname">{{ match.secondPlayer }}</span>
+      @if (match.isLive && match.serving === 'Second') {
+        <span class="serve" title="Serving">●</span>
+      }
     </div>
   </div>
 
   <div class="tile__foot">
-    <span class="status">{{ match.finalResult || match.status || '—' }}</span>
+    <span class="status">
+      {{ match.finalResult || match.status || '—' }}
+      @if (gameScore) {
+        <b class="gamescore">{{ gameScore }}</b>
+      }
+    </span>
     <div class="momentum" title="Momentum lead">
       <span class="momentum__label muted">momentum</span>
       <div class="momentum__track">

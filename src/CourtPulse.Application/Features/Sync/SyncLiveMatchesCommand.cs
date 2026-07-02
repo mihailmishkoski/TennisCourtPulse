@@ -74,7 +74,23 @@ public sealed class SyncLiveMatchesCommandHandler : IRequestHandler<SyncLiveMatc
 
         int ended = await MarkDepartedMatchesAsync(seenEventKeys, cancellationToken);
 
-        await _db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry in ex.Entries)
+            {
+                string keys = string.Join(",", entry.Properties
+                    .Where(p => p.Metadata.IsPrimaryKey())
+                    .Select(p => $"{p.Metadata.Name}={p.CurrentValue}"));
+                _logger.LogError("SYNC CONFLICT entity={Entity} state={State} keys={Keys}",
+                    entry.Entity.GetType().Name, entry.State, keys);
+            }
+
+            throw;
+        }
         _logger.LogInformation(
             "Live sync done: processed={Processed} newPoints={NewPoints} newSnapshots={NewSnapshots} ended={Ended}",
             mappedMatches.Count, newPoints, newSnapshots, ended);
@@ -139,26 +155,24 @@ public sealed class SyncLiveMatchesCommandHandler : IRequestHandler<SyncLiveMatc
 
     private void UpsertSets(Match match, MappedMatch mapped)
     {
-        for (int i = 0; i < mapped.SetScores.Count; i++)
+        foreach (SetScoreInput setScore in mapped.SetScores)
         {
-            int setNumber = i + 1;
-            (int first, int second) = mapped.SetScores[i];
-            MatchSet? existing = match.Sets.FirstOrDefault(s => s.SetNumber == setNumber);
+            MatchSet? existing = match.Sets.FirstOrDefault(s => s.SetNumber == setScore.SetNumber);
             if (existing is null)
             {
                 match.Sets.Add(new MatchSet
                 {
                     Id = Guid.NewGuid(),
                     MatchId = match.Id,
-                    SetNumber = setNumber,
-                    ScoreFirst = first,
-                    ScoreSecond = second
+                    SetNumber = setScore.SetNumber,
+                    ScoreFirst = setScore.First,
+                    ScoreSecond = setScore.Second
                 });
             }
             else
             {
-                existing.ScoreFirst = first;
-                existing.ScoreSecond = second;
+                existing.ScoreFirst = setScore.First;
+                existing.ScoreSecond = setScore.Second;
             }
         }
     }

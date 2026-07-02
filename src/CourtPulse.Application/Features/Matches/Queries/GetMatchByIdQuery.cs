@@ -43,6 +43,8 @@ public sealed class GetMatchByIdQueryHandler : IRequestHandler<GetMatchByIdQuery
             IsLive = match.IsLive,
             IsFinished = match.IsFinished,
             FinalResult = match.FinalResult,
+            CurrentGameScore = GamePointFormatter.Format(match),
+            Serving = match.Serving?.ToString(),
             Winner = match.Winner?.FullName,
             Sets = match.Sets
                 .OrderBy(s => s.SetNumber)

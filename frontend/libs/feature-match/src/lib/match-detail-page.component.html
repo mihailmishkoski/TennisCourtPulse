@@ -16,9 +16,20 @@
           <div class="pl">
             <cp-player-avatar class="big-avatar" [name]="d.firstPlayer" [logoUrl]="d.firstPlayerLogo" side="first" />
             {{ d.firstPlayer }}
+            @if (d.isLive && d.serving === 'First') {
+              <span class="serve" title="Serving">●</span>
+            }
           </div>
-          <div class="score">{{ d.finalResult || d.status }}</div>
+          <div class="score">
+            <div>{{ d.finalResult || d.status }}</div>
+            @if (d.isLive && d.currentGameScore) {
+              <div class="gamescore">{{ formatScore(d.currentGameScore) }}</div>
+            }
+          </div>
           <div class="pl pl--right">
+            @if (d.isLive && d.serving === 'Second') {
+              <span class="serve" title="Serving">●</span>
+            }
             {{ d.secondPlayer }}
             <cp-player-avatar class="big-avatar" [name]="d.secondPlayer" [logoUrl]="d.secondPlayerLogo" side="second" />
           </div>

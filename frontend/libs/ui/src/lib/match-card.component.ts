@@ -19,4 +19,9 @@ export class MatchCardComponent {
   get markerPct(): number {
     return 50 + 45 * Math.tanh(this.match.momentumDifferential / 12);
   }
+
+  /** Live in-progress game score in colon format, e.g. "15:0". */
+  get gameScore(): string | null {
+    return this.match.currentGameScore ? this.match.currentGameScore.replace(' - ', ':') : null;
+  }
 }

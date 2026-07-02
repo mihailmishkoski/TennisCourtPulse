@@ -21,6 +21,7 @@ public sealed class GetLiveMatchesQueryHandler
             .Include(m => m.Tournament)
             .Include(m => m.FirstPlayer)
             .Include(m => m.SecondPlayer)
+            .Include(m => m.Sets)
             .Where(m => m.IsLive || m.IsFinished)
             .OrderByDescending(m => m.IsLive)
             .ThenByDescending(m => m.LastSyncedAt)
@@ -39,6 +40,14 @@ public sealed class GetLiveMatchesQueryHandler
             IsLive = m.IsLive,
             IsFinished = m.IsFinished,
             FinalResult = m.FinalResult,
+            CurrentGameScore = GamePointFormatter.Format(m),
+            Serving = m.Serving?.ToString(),
+            Gender = MatchClassifier.Gender(m.EventType),
+            Tour = MatchClassifier.Tour(m.EventType),
+            Sets = m.Sets
+                .OrderBy(s => s.SetNumber)
+                .Select(s => new SetScoreDto(s.SetNumber, s.ScoreFirst, s.ScoreSecond))
+                .ToList(),
             MomentumDifferential = m.MomentumFirstCumulative - m.MomentumSecondCumulative
         }).ToList();
     }
