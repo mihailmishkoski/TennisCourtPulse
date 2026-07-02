@@ -1,0 +1,22 @@
+.tile { display: block; padding: 16px; transition: transform 0.12s ease, border-color 0.12s ease; }
+.tile:hover { transform: translateY(-2px); border-color: var(--accent); }
+.tile__top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.tournament { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%; }
+.players { display: flex; flex-direction: column; gap: 8px; }
+.player { display: flex; align-items: center; gap: 9px; }
+.pname { font-weight: 600; }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.dot--first { background: var(--first); }
+.dot--second { background: var(--second); }
+.tile__foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; gap: 14px; }
+.status { font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.momentum { display: flex; align-items: center; gap: 8px; flex: 1; max-width: 160px; }
+.momentum__label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+.momentum__track {
+  position: relative; flex: 1; height: 6px; border-radius: 3px;
+  background: linear-gradient(90deg, var(--first), var(--surface-2), var(--second));
+}
+.momentum__marker {
+  position: absolute; top: 50%; width: 3px; height: 12px; border-radius: 2px;
+  background: var(--text); transform: translate(-50%, -50%);
+}

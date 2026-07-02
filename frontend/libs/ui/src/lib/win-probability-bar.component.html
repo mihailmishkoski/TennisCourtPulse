@@ -1,0 +1,12 @@
+<div class="row">
+  <span class="name">{{ firstName }}</span>
+  <span class="pct">{{ firstPct }}%</span>
+</div>
+<div class="bar">
+  <div class="bar__first" [style.width.%]="firstPct"></div>
+  <div class="bar__second" [style.width.%]="100 - firstPct"></div>
+</div>
+<div class="row">
+  <span class="pct">{{ 100 - firstPct }}%</span>
+  <span class="name">{{ secondName }}</span>
+</div>

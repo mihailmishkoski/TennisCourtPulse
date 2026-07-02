@@ -1,0 +1,152 @@
+<div class="container">
+  <a routerLink="/" class="back muted">← All matches</a>
+
+  @if (vm$ | async; as vm) {
+    @if (vm.detail; as d) {
+      <header class="card head">
+        <div class="head__meta">
+          <span class="muted">{{ d.tournament }}{{ d.round ? ' · ' + d.round : '' }}</span>
+          @if (d.isLive) {
+            <span class="badge badge--live">Live</span>
+          } @else {
+            <span class="badge badge--finished">Final</span>
+          }
+        </div>
+        <div class="head__players">
+          <div class="pl">
+            <cp-player-avatar class="big-avatar" [name]="d.firstPlayer" [logoUrl]="d.firstPlayerLogo" side="first" />
+            {{ d.firstPlayer }}
+          </div>
+          <div class="score">{{ d.finalResult || d.status }}</div>
+          <div class="pl pl--right">
+            {{ d.secondPlayer }}
+            <cp-player-avatar class="big-avatar" [name]="d.secondPlayer" [logoUrl]="d.secondPlayerLogo" side="second" />
+          </div>
+        </div>
+        @if (d.sets.length) {
+          <div class="sets">
+            @for (s of d.sets; track s.setNumber) {
+              <span class="setpill">{{ s.first }}-{{ s.second }}</span>
+            }
+          </div>
+        }
+      </header>
+
+      <nav class="tabs">
+        @for (t of tabs; track t.key) {
+          <button class="tab" [class.tab--active]="activeTab === t.key" (click)="activeTab = t.key">
+            {{ t.label }}
+          </button>
+        }
+      </nav>
+
+      @switch (activeTab) {
+        @case ('overview') {
+          <section class="grid-2">
+            <div class="card pad">
+              <h3 class="section-title">Win probability</h3>
+              @if (vm.winProbability) {
+                <cp-win-probability-bar
+                  [first]="vm.winProbability.first"
+                  [firstName]="d.firstPlayer"
+                  [secondName]="d.secondPlayer" />
+              } @else {
+                <p class="muted">Not available.</p>
+              }
+            </div>
+            <div class="card pad">
+              <h3 class="section-title">Key moments</h3>
+              @if (vm.keyMoments.length) {
+                <ul class="moments">
+                  @for (m of vm.keyMoments; track $index) {
+                    <li><b>{{ m.player }}</b> — {{ m.label }} <span class="muted">(set {{ m.set }}, game {{ m.game }})</span></li>
+                  }
+                </ul>
+              } @else {
+                <p class="muted">No standout moments yet.</p>
+              }
+            </div>
+          </section>
+          <div class="card pad">
+            <h3 class="section-title">Momentum</h3>
+            <cp-momentum-chart [points]="vm.momentum" [firstName]="d.firstPlayer" [secondName]="d.secondPlayer" />
+          </div>
+        }
+        @case ('stats') {
+          <div class="card pad">
+            <h3 class="section-title">{{ d.firstPlayer }} vs {{ d.secondPlayer }}</h3>
+            <cp-stat-comparison [players]="vm.stats" />
+          </div>
+        }
+        @case ('summary') {
+          @if (vm.summary; as sum) {
+            @if (sum.headlines.length) {
+              <div class="card pad headlines">
+                @for (h of sum.headlines; track $index) {
+                  <p class="headline">🎾 {{ h }}</p>
+                }
+              </div>
+            }
+            <section class="grid-2">
+              <div class="card pad">
+                <h3 class="section-title">{{ d.firstPlayer }}</h3>
+                <cp-insight-list title="Strengths" tone="good" [insights]="sum.first.strengths" />
+                <cp-insight-list title="Weaknesses" tone="bad" [insights]="sum.first.weaknesses" />
+                <cp-insight-list title="Notable" tone="info" [insights]="sum.first.highlights" />
+              </div>
+              <div class="card pad">
+                <h3 class="section-title">{{ d.secondPlayer }}</h3>
+                <cp-insight-list title="Strengths" tone="good" [insights]="sum.second.strengths" />
+                <cp-insight-list title="Weaknesses" tone="bad" [insights]="sum.second.weaknesses" />
+                <cp-insight-list title="Notable" tone="info" [insights]="sum.second.highlights" />
+              </div>
+            </section>
+          } @else {
+            <div class="card pad muted">Summary becomes available once statistics arrive.</div>
+          }
+        }
+        @case ('timeline') {
+          <div class="card pad">
+            @if (vm.timeline && vm.timeline.sets.length) {
+              @for (s of vm.timeline.sets; track s.setNumber) {
+                <div class="tl-set">
+                  <h4 class="section-title">Set {{ s.setNumber }}</h4>
+                  @for (g of s.games; track g.gameNumber) {
+                    <div class="tl-game" [class.tl-game--broken]="g.serveWinner && g.serveWinner !== g.server">
+                      <div class="tl-game__head">
+                        <span class="tl-game__no">Game {{ g.gameNumber }}</span>
+                        <span class="muted">
+                          {{ sideName(g.server, d) }} served{{ g.serveWinner ? ' → ' + sideName(g.serveWinner, d) + ' won' : '' }}
+                        </span>
+                      </div>
+                      @if (g.points.length) {
+                        <div class="tl-points">
+                          @for (p of g.points; track p.pointNumber) {
+                            <span
+                              class="pt"
+                              [class.pt--bp]="p.isBreakPoint"
+                              [class.pt--sp]="p.isSetPoint"
+                              [class.pt--mp]="p.isMatchPoint"
+                              [title]="pointTitle(p)">
+                              {{ formatScore(p.score) }}
+                            </span>
+                          }
+                        </div>
+                      } @else {
+                        <div class="tl-points muted">no point-by-point detail for this game</div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            } @else {
+              <p class="muted">No timeline data yet.</p>
+            }
+          </div>
+        }
+      }
+    } @else {
+      <div class="card pad">Match not found, or the API is unavailable.</div>
+    }
+  }
+</div>

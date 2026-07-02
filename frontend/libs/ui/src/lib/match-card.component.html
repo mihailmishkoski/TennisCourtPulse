@@ -1,0 +1,31 @@
+<a class="card tile" [routerLink]="['/matches', match.id]">
+  <div class="tile__top">
+    <span class="tournament">{{ match.tournament || 'Tournament' }}</span>
+    @if (match.isLive) {
+      <span class="badge badge--live">Live</span>
+    } @else {
+      <span class="badge badge--finished">Final</span>
+    }
+  </div>
+
+  <div class="players">
+    <div class="player">
+      <cp-player-avatar [name]="match.firstPlayer" [logoUrl]="match.firstPlayerLogo" side="first" />
+      <span class="pname">{{ match.firstPlayer }}</span>
+    </div>
+    <div class="player">
+      <cp-player-avatar [name]="match.secondPlayer" [logoUrl]="match.secondPlayerLogo" side="second" />
+      <span class="pname">{{ match.secondPlayer }}</span>
+    </div>
+  </div>
+
+  <div class="tile__foot">
+    <span class="status">{{ match.finalResult || match.status || '—' }}</span>
+    <div class="momentum" title="Momentum lead">
+      <span class="momentum__label muted">momentum</span>
+      <div class="momentum__track">
+        <div class="momentum__marker" [style.left.%]="markerPct"></div>
+      </div>
+    </div>
+  </div>
+</a>

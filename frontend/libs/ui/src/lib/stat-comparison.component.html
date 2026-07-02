@@ -1,0 +1,15 @@
+@if (rows.length) {
+  <div class="grid">
+    @for (row of rows; track row.name) {
+      <span class="val val--left">{{ row.leftValue }}</span>
+      <div class="bars">
+        <div class="bars__track"><div class="fill fill--left" [style.width.%]="row.leftPct"></div></div>
+        <span class="label">{{ row.name }}</span>
+        <div class="bars__track"><div class="fill fill--right" [style.width.%]="row.rightPct"></div></div>
+      </div>
+      <span class="val val--right">{{ row.rightValue }}</span>
+    }
+  </div>
+} @else {
+  <p class="muted">No statistics available for this match yet.</p>
+}

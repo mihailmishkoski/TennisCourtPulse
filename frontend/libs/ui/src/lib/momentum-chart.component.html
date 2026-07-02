@@ -1,0 +1,15 @@
+@if (points.length > 1) {
+  <svg [attr.viewBox]="'0 0 ' + width + ' ' + height" preserveAspectRatio="none" class="chart">
+    <line [attr.x1]="0" [attr.x2]="width" [attr.y1]="mid" [attr.y2]="mid" class="axis" />
+    <path [attr.d]="areaPath" class="area" />
+    <polyline [attr.points]="cumulativeLine" class="line line--cumulative" />
+    <polyline [attr.points]="ewmaLine" class="line line--ewma" />
+  </svg>
+  <div class="legend">
+    <span class="legend__item"><i class="swatch swatch--first"></i>{{ firstName }} ahead ↑</span>
+    <span class="legend__item"><i class="swatch swatch--second"></i>{{ secondName }} ahead ↓</span>
+    <span class="legend__item muted"><i class="swatch swatch--ewma"></i>recent surge</span>
+  </div>
+} @else {
+  <p class="muted">No momentum data yet.</p>
+}

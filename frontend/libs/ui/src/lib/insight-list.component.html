@@ -1,0 +1,12 @@
+<h4 class="section-title">{{ title }}</h4>
+@if (insights.length) {
+  <ul class="list">
+    @for (insight of insights; track insight.metric) {
+      <li class="chip" [class.chip--good]="tone === 'good'" [class.chip--bad]="tone === 'bad'">
+        {{ insight.summary }}
+      </li>
+    }
+  </ul>
+} @else {
+  <p class="muted">Nothing notable.</p>
+}

@@ -1,0 +1,12 @@
+.bar {
+  display: flex;
+  height: 22px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.bar__first { background: var(--first); }
+.bar__second { background: var(--second); }
+.row { display: flex; justify-content: space-between; margin: 6px 0; font-size: 13px; }
+.name { font-weight: 600; }
+.pct { color: var(--text-dim); }

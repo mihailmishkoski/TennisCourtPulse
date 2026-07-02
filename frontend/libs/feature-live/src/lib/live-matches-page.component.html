@@ -1,0 +1,33 @@
+<div class="container">
+  @if (state$ | async; as state) {
+    @if (state.loading) {
+      <p class="muted">Loading matches…</p>
+    } @else if (state.error) {
+      <div class="card error">{{ state.error }}</div>
+    } @else {
+      <section>
+        <h2 class="section-title">Live now · {{ live(state.matches).length }}</h2>
+        @if (live(state.matches).length) {
+          <div class="grid">
+            @for (m of live(state.matches); track m.id) {
+              <cp-match-card [match]="m" />
+            }
+          </div>
+        } @else {
+          <p class="muted">No live matches right now.</p>
+        }
+      </section>
+
+      @if (finished(state.matches).length) {
+        <section class="finished">
+          <h2 class="section-title">Recently finished · {{ finished(state.matches).length }}</h2>
+          <div class="grid">
+            @for (m of finished(state.matches); track m.id) {
+              <cp-match-card [match]="m" />
+            }
+          </div>
+        </section>
+      }
+    }
+  }
+</div>

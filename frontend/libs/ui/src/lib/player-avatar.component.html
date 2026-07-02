@@ -1,0 +1,5 @@
+@if (logoUrl) {
+  <img class="avatar avatar--img" [class.avatar--second]="side === 'second'" [src]="logoUrl" [alt]="name" />
+} @else {
+  <span class="avatar avatar--initials" [class.avatar--second]="side === 'second'">{{ initials }}</span>
+}

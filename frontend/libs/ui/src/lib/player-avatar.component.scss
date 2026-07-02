@@ -1,0 +1,28 @@
+:host {
+  display: inline-flex;
+}
+.avatar {
+  width: var(--avatar-size, 34px);
+  height: var(--avatar-size, 34px);
+  border-radius: 50%;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--first);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.avatar--second { border-color: var(--second); }
+.avatar--img { object-fit: cover; }
+.avatar--initials {
+  font-size: calc(var(--avatar-size, 34px) * 0.4);
+  font-weight: 700;
+  color: var(--first);
+  background: rgba(45, 212, 191, 0.12);
+  letter-spacing: 0.02em;
+}
+.avatar--initials.avatar--second {
+  color: var(--second);
+  background: rgba(245, 166, 35, 0.12);
+}
